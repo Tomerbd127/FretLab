@@ -103,6 +103,12 @@ nonisolated struct Interval: Hashable, Sendable {
     /// "M3", "P5", "d7", "A4".
     var shortName: String { quality.abbreviation + String(number) }
 
+    /// Guitarist-style degree relative to the major scale: "1", "b3", "#4", "b5", "bb7", "9".
+    var degreeName: String {
+        let offset = semitones - Self.referenceSemitones(steps: steps)
+        return Accidental(offset: offset).symbol + String(number)
+    }
+
     /// "major third", "perfect fifth".
     var name: String { "\(quality.name) \(Self.ordinal(number))" }
 

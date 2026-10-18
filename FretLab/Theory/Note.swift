@@ -34,6 +34,13 @@ nonisolated struct Note: Hashable, Sendable {
         self.init(pitchClass, octave: Theory.floorDiv(midiNumber, 12) - 1)
     }
 
+    /// Spells a MIDI number with a specific pitch class (e.g. MIDI 60 as B#3), or nil if they aren't enharmonic.
+    init?(midiNumber: Int, spelledAs pitchClass: PitchClass) {
+        guard Theory.mod(midiNumber, 12) == pitchClass.semitone else { return nil }
+        let unwrapped = pitchClass.letter.naturalSemitone + pitchClass.accidental.offset
+        self.init(pitchClass, octave: Theory.floorDiv(midiNumber - unwrapped, 12) - 1)
+    }
+
     var letter: NoteLetter { pitchClass.letter }
     var accidental: Accidental { pitchClass.accidental }
 

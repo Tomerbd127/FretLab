@@ -43,4 +43,23 @@ nonisolated struct Scale: Hashable, Sendable {
     func spelling(of pitchClass: PitchClass) -> PitchClass? {
         pitchClasses.first { $0.isEnharmonic(with: pitchClass) }
     }
+
+    /// Total accidentals across the scale's spelling (a double sharp counts as 2).
+    var accidentalWeight: Int {
+        pitchClasses.reduce(0) { $0 + abs($1.accidental.offset) }
+    }
+
+    /// The usual root names for the 12 pitches when there is no other context.
+    static let commonRoots: [PitchClass] = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+        .map { PitchClass($0)! }
+
+    /// The spelling of a root pitch (0–11) that gives the simplest scale of this type:
+    /// C# minor rather than Db minor, Db major rather than C# major. Ties go to `commonRoots`.
+    static func conventionalRoot(forSemitone semitone: Int, type: ScaleType) -> PitchClass {
+        let common = commonRoots[Theory.mod(semitone, 12)]
+        let candidates = [common, PitchClass(semitone: semitone, preferring: .sharps),
+                          PitchClass(semitone: semitone, preferring: .flats)]
+        // min(by:) returns the first minimum, so the common spelling wins ties.
+        return candidates.min { Scale(root: $0, type: type).accidentalWeight < Scale(root: $1, type: type).accidentalWeight }!
+    }
 }
